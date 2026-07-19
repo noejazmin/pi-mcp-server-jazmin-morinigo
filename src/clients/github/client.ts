@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import { createOctokit } from "./octokit.js";
 import type { Repository } from "../../schemas/github.js";
+import { githubRequest } from "./request.js";
 
 export class GitHubClient {
   private readonly octokit: Octokit;
