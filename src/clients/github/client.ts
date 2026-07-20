@@ -11,23 +11,48 @@ export class GitHubClient {
   }
 
   async listRepositories(
-  type: "all" | "public" | "private" = "all",
-  sort: "created" | "updated" | "pushed" | "full_name" = "updated",
-  per_page: number = 30,
-): Promise<Repository[]> {
-  const { data } =
-    await this.octokit.rest.repos.listForAuthenticatedUser({
-      type,
-      sort,
-      per_page,
-    });
+    type: "all" | "public" | "private" = "all",
+    sort: "created" | "updated" | "pushed" | "full_name" = "updated",
+    per_page: number = 30,
+  ): Promise<Repository[]> {
+    const { data } =
+      await this.octokit.rest.repos.listForAuthenticatedUser({
+        type,
+        sort,
+        per_page,
+      });
 
-  return data.map((repository) => ({
-    fullName: repository.full_name,
-    url: repository.html_url,
-    private: repository.private,
-    description: repository.description,
-    owner: repository.owner.login,
-  }));
-}
+    return data.map((repository) => ({
+      fullName: repository.full_name,
+      url: repository.html_url,
+      private: repository.private,
+      description: repository.description,
+      owner: repository.owner.login,
+    }));
+  }
+
+  async createRepository(
+    name: string,
+    description?: string,
+    isPrivate = false,
+  ): Promise<Repository> {
+    const data = await githubRequest(() =>
+      this.octokit.rest.repos.createForAuthenticatedUser({
+        name,
+        ...(description !== undefined && {
+          description,
+        }),
+        private: isPrivate,
+        auto_init: true,
+      }),
+    );
+
+    return {
+      fullName: data.full_name,
+      url: data.html_url,
+      private: data.private,
+      description: data.description,
+      owner: data.owner.login,
+    };
+  }
 }
