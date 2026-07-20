@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import { createOctokit } from "./octokit.js";
 import type {
+  CreatedCommit,
   CreatedIssue,
   IssueSummary,
   Repository,
@@ -127,5 +128,88 @@ async listIssues(
       state: issue.state,
       url: issue.html_url,
     }));
+}
+
+async createCommit(
+  owner: string,
+  repo: string,
+  path: string,
+  content: string,
+  message: string,
+  branch = "main",
+): Promise<CreatedCommit> {
+  const refData = await githubRequest(() =>
+    this.octokit.rest.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+    }),
+  );
+
+  const parentCommitSha = refData.object.sha;
+
+  const commitData = await githubRequest(() =>
+    this.octokit.rest.git.getCommit({
+      owner,
+      repo,
+      commit_sha: parentCommitSha,
+    }),
+  );
+
+  const baseTreeSha = commitData.tree.sha;
+
+  const blobData = await githubRequest(() =>
+    this.octokit.rest.git.createBlob({
+      owner,
+      repo,
+      content: Buffer.from(
+        content,
+        "utf-8",
+      ).toString("base64"),
+      encoding: "base64",
+    }),
+  );
+
+  const treeData = await githubRequest(() =>
+    this.octokit.rest.git.createTree({
+      owner,
+      repo,
+      base_tree: baseTreeSha,
+      tree: [
+        {
+          path,
+          mode: "100644",
+          type: "blob",
+          sha: blobData.sha,
+        },
+      ],
+    }),
+  );
+
+  const newCommit = await githubRequest(() =>
+    this.octokit.rest.git.createCommit({
+      owner,
+      repo,
+      message,
+      tree: treeData.sha,
+      parents: [parentCommitSha],
+    }),
+  );
+
+  await githubRequest(() =>
+    this.octokit.rest.git.updateRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+      sha: newCommit.sha,
+    }),
+  );
+
+  return {
+    sha: newCommit.sha,
+    url: `https://github.com/${owner}/${repo}/commit/${newCommit.sha}`,
+    path,
+    branch,
+  };
 }
 }
