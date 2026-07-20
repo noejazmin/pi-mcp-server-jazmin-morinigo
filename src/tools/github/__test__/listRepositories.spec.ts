@@ -137,4 +137,24 @@ describe("listRepositoriesHandler", () => {
     },
   });
 });
+
+it("utiliza valores predeterminados cuando no recibe argumentos", async () => {
+  mockGitHub.listRepositories.mockResolvedValue([]);
+
+  const result = await listRepositoriesHandler(
+    {},
+    mockGitHub,
+  );
+
+  expect(mockGitHub.listRepositories).toHaveBeenCalledWith(
+    "all",
+    "updated",
+    30,
+  );
+
+  expect(result.structuredContent).toEqual({
+    ok: true,
+    data: [],
+  });
+});
 });
