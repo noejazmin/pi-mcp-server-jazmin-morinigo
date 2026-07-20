@@ -65,4 +65,47 @@ export const createRepositoryOutputSchema = z.object({
   data: repositorySchema,
 });
 
+export const createIssueSchema = z.object({
+  owner: z
+    .string()
+    .min(1, {
+      message: "El propietario es obligatorio.",
+    })
+    .describe(
+      "Usuario u organización propietaria del repositorio.",
+    ),
+
+  repo: z
+    .string()
+    .min(1, {
+      message: "El repositorio es obligatorio.",
+    })
+    .describe("Nombre del repositorio."),
+
+  title: z
+    .string()
+    .min(3, {
+      message:
+        "El título debe tener al menos 3 caracteres.",
+    })
+    .describe("Título del issue."),
+
+  body: z
+    .string()
+    .optional()
+    .describe("Descripción opcional del issue en Markdown."),
+});
+
+export const createdIssueSchema = z.object({
+  number: z.number().int().positive(),
+  url: z.string().url(),
+  title: z.string(),
+});
+
+export const createIssueOutputSchema = z.object({
+  ok: z.literal(true),
+  data: createdIssueSchema,
+});
+
 export type Repository = z.infer<typeof repositorySchema>;
+export type CreatedIssue = z.infer<typeof createdIssueSchema>;
