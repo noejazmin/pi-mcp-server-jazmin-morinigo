@@ -159,8 +159,65 @@ export const listIssuesOutputSchema = z.object({
   data: z.array(issueSummarySchema),
 });
 
+export const createCommitSchema = z.object({
+  owner: z
+    .string()
+    .min(1, {
+      message: "El propietario es obligatorio.",
+    })
+    .describe(
+      "Usuario u organización propietaria del repositorio.",
+    ),
+
+  repo: z
+    .string()
+    .min(1, {
+      message: "El repositorio es obligatorio.",
+    })
+    .describe("Nombre del repositorio."),
+
+  path: z
+    .string()
+    .min(1, {
+      message: "La ruta del archivo es obligatoria.",
+    })
+    .describe(
+      "Ruta del archivo relativa a la raíz, por ejemplo src/index.ts.",
+    ),
+
+  content: z
+    .string()
+    .describe("Contenido completo del archivo en UTF-8."),
+
+  message: z
+    .string()
+    .min(1, {
+      message: "El mensaje del commit es obligatorio.",
+    })
+    .describe("Mensaje que describe el commit."),
+
+  branch: z
+    .string()
+    .min(1)
+    .default("main")
+    .describe("Rama donde se creará el commit."),
+});
+
+export const createdCommitSchema = z.object({
+  sha: z.string(),
+  url: z.string().url(),
+  path: z.string(),
+  branch: z.string(),
+});
+
+export const createCommitOutputSchema = z.object({
+  ok: z.literal(true),
+  data: createdCommitSchema,
+});
+
 export type Repository = z.infer<typeof repositorySchema>;
 export type CreatedIssue = z.infer<typeof createdIssueSchema>;
 export type RepoSummary = z.infer<typeof repoSummarySchema>;
 export type IssueSummary = z.infer<typeof issueSummarySchema>;
+export type CreatedCommit = z.infer<typeof createdCommitSchema>;
 
