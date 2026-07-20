@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/rest";
 import { createOctokit } from "./octokit.js";
-import type { Repository } from "../../schemas/github.js";
+import type { Repository, CreatedIssue, RepoSummary } from "../../schemas/github.js";
 import { githubRequest } from "./request.js";
 
 export class GitHubClient {
@@ -55,4 +55,47 @@ export class GitHubClient {
       owner: data.owner.login,
     };
   }
+
+  async getRepoSummary(
+  owner: string,
+  repo: string,
+): Promise<RepoSummary> {
+  const data = await githubRequest(() =>
+    this.octokit.rest.repos.get({
+      owner,
+      repo,
+    }),
+  );
+
+  return {
+    fullName: data.full_name,
+    description: data.description,
+    stars: data.stargazers_count,
+    defaultBranch: data.default_branch,
+  };
+}
+
+async createIssue(
+  owner: string,
+  repo: string,
+  title: string,
+  body?: string,
+): Promise<CreatedIssue> {
+  const data = await githubRequest(() =>
+    this.octokit.rest.issues.create({
+      owner,
+      repo,
+      title,
+      ...(body !== undefined && {
+        body,
+      }),
+    }),
+  );
+
+  return {
+    number: data.number,
+    url: data.html_url,
+    title: data.title,
+  };
+}
 }
