@@ -33,4 +33,36 @@ export const listRepositoriesOutputSchema = z.object({
   data: z.array(repositorySchema),
 });
 
+export const createRepositorySchema = z.object({
+  name: z
+    .string()
+    .min(1, {
+      message: "El nombre del repositorio es obligatorio.",
+    })
+    .max(100, {
+      message:
+        "El nombre no puede superar los 100 caracteres.",
+    })
+    .regex(/^[a-zA-Z0-9_.-]+$/, {
+      message:
+        "El nombre solo puede contener letras, números, puntos, guiones y guiones bajos.",
+    })
+    .describe("Nombre del nuevo repositorio."),
+
+  description: z
+    .string()
+    .optional()
+    .describe("Descripción opcional del repositorio."),
+
+  private: z
+    .boolean()
+    .default(false)
+    .describe("Indica si el repositorio será privado."),
+});
+
+export const createRepositoryOutputSchema = z.object({
+  ok: z.literal(true),
+  data: repositorySchema,
+});
+
 export type Repository = z.infer<typeof repositorySchema>;
