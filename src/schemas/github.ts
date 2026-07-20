@@ -114,6 +114,53 @@ export const createIssueOutputSchema = z.object({
   data: createdIssueSchema,
 });
 
+export const listIssuesSchema = z.object({
+  owner: z
+    .string()
+    .min(1, {
+      message: "El propietario es obligatorio.",
+    })
+    .describe(
+      "Usuario u organización propietaria del repositorio.",
+    ),
+
+  repo: z
+    .string()
+    .min(1, {
+      message: "El repositorio es obligatorio.",
+    })
+    .describe("Nombre del repositorio."),
+
+  state: z
+    .enum(["open", "closed", "all"])
+    .default("open")
+    .describe("Estado de los issues que se desean listar."),
+
+  per_page: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(30)
+    .describe(
+      "Cantidad de issues a devolver, entre 1 y 100.",
+    ),
+});
+
+export const issueSummarySchema = z.object({
+  number: z.number().int().positive(),
+  title: z.string(),
+  state: z.string(),
+  url: z.string().url(),
+});
+
+export const listIssuesOutputSchema = z.object({
+  ok: z.literal(true),
+  data: z.array(issueSummarySchema),
+});
+
 export type Repository = z.infer<typeof repositorySchema>;
 export type CreatedIssue = z.infer<typeof createdIssueSchema>;
 export type RepoSummary = z.infer<typeof repoSummarySchema>;
+export type IssueSummary = z.infer<typeof issueSummarySchema>;
+
