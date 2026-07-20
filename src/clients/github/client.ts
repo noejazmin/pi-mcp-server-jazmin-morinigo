@@ -1,6 +1,11 @@
 import { Octokit } from "@octokit/rest";
 import { createOctokit } from "./octokit.js";
-import type { Repository, CreatedIssue, RepoSummary } from "../../schemas/github.js";
+import type {
+  CreatedIssue,
+  IssueSummary,
+  Repository,
+  RepoSummary,
+} from "../../schemas/github.js";
 import { githubRequest } from "./request.js";
 
 export class GitHubClient {
@@ -97,5 +102,30 @@ async createIssue(
     url: data.html_url,
     title: data.title,
   };
+}
+
+async listIssues(
+  owner: string,
+  repo: string,
+  state: "open" | "closed" | "all" = "open",
+  per_page = 30,
+): Promise<IssueSummary[]> {
+  const data = await githubRequest(() =>
+    this.octokit.rest.issues.listForRepo({
+      owner,
+      repo,
+      state,
+      per_page,
+    }),
+  );
+
+  return data
+    .filter((issue) => !issue.pull_request)
+    .map((issue) => ({
+      number: issue.number,
+      title: issue.title,
+      state: issue.state,
+      url: issue.html_url,
+    }));
 }
 }
