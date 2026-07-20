@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { GitHubAuthError } from "../../../clients/github/errors.js";
+import { GitHubAuthError, GitHubRateLimitError } from "../../../clients/github/errors.js";
 import { toToolError } from "../result.js";
 
 describe("toToolError", () => {
@@ -54,4 +54,22 @@ describe("toToolError", () => {
       },
     });
   });
+
+  it("incluye el momento de reinicio del rate limit", () => {
+  const error = new GitHubRateLimitError(1784230000);
+
+  const result = toToolError(error);
+
+  expect(result).toEqual({
+    ok: false,
+    error: {
+      type: "GitHubRateLimitError",
+      message:
+        "Se alcanzó el límite de solicitudes permitido por GitHub.",
+      details: {
+        resetEpochSeconds: 1784230000,
+      },
+    },
+  });
+});
 });
