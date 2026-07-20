@@ -28,6 +28,13 @@ export const repositorySchema = z.object({
   owner: z.string(),
 });
 
+export const repoSummarySchema = z.object({
+  fullName: z.string(),
+  description: z.string().nullable(),
+  stars: z.number().int().nonnegative(),
+  defaultBranch: z.string(),
+});
+
 export const listRepositoriesOutputSchema = z.object({
   ok: z.literal(true),
   data: z.array(repositorySchema),
@@ -109,3 +116,4 @@ export const createIssueOutputSchema = z.object({
 
 export type Repository = z.infer<typeof repositorySchema>;
 export type CreatedIssue = z.infer<typeof createdIssueSchema>;
+export type RepoSummary = z.infer<typeof repoSummarySchema>;
