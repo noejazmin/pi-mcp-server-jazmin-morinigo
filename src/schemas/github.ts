@@ -159,6 +159,57 @@ export const listIssuesOutputSchema = z.object({
   data: z.array(issueSummarySchema),
 });
 
+export const listCommitsSchema = z.object({
+  owner: z
+    .string()
+    .min(1, {
+      message: "El propietario es obligatorio.",
+    })
+    .describe(
+      "Usuario u organización propietaria del repositorio.",
+    ),
+
+  repo: z
+    .string()
+    .min(1, {
+      message: "El repositorio es obligatorio.",
+    })
+    .describe("Nombre del repositorio."),
+
+  branch: z
+    .string()
+    .min(1, {
+      message: "La rama no puede estar vacía.",
+    })
+    .default("main")
+    .describe(
+      "Rama cuyos commits se desean listar.",
+    ),
+
+  per_page: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10)
+    .describe(
+      "Cantidad de commits a devolver, entre 1 y 100.",
+    ),
+});
+
+export const commitSummarySchema = z.object({
+  sha: z.string(),
+  message: z.string(),
+  author: z.string(),
+  date: z.string().datetime().nullable(),
+  url: z.string().url(),
+});
+
+export const listCommitsOutputSchema = z.object({
+  ok: z.literal(true),
+  data: z.array(commitSummarySchema),
+});
+
 export const createCommitSchema = z.object({
   owner: z
     .string()
@@ -220,4 +271,5 @@ export type CreatedIssue = z.infer<typeof createdIssueSchema>;
 export type RepoSummary = z.infer<typeof repoSummarySchema>;
 export type IssueSummary = z.infer<typeof issueSummarySchema>;
 export type CreatedCommit = z.infer<typeof createdCommitSchema>;
+export type CommitSummary = z.infer<typeof commitSummarySchema>;
 
