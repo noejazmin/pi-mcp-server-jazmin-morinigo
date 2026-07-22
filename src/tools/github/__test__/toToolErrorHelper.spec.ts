@@ -72,4 +72,26 @@ describe("toToolError", () => {
     },
   });
 });
+
+it("incluye retry-after en el error de rate limit", () => {
+  const error = new GitHubRateLimitError(
+    0,
+    60,
+  );
+
+  const result = toToolError(error);
+
+  expect(result).toEqual({
+    ok: false,
+    error: {
+      type: "GitHubRateLimitError",
+      message:
+        "Se alcanzó el límite de solicitudes permitido por GitHub.",
+      details: {
+        resetEpochSeconds: 0,
+        retryAfterSeconds: 60,
+      },
+    },
+  });
+});
 });
