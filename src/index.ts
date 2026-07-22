@@ -6,6 +6,8 @@ import { registerCreateIssue } from "./tools/github/create-issue.js";
 import { registerListIssues } from "./tools/github/list-issues.js";
 import { registerCreateCommit } from "./tools/github/create-commit.js";
 import { registerListCommits } from "./tools/github/list-commits.js";
+import { registerAddCommentToIssue } from "./tools/github/add-comment-to-issue.js";
+import { registerCloseIssue } from "./tools/github/close-issue.js";
 
 const server = new McpServer({
   name: "github-mcp-server",
@@ -19,6 +21,8 @@ async function main() {
   registerListIssues(server);
   registerCreateCommit(server);
   registerListCommits(server);
+  registerAddCommentToIssue(server);
+  registerCloseIssue(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
