@@ -1,9 +1,11 @@
 import { Octokit } from "@octokit/rest";
 import { createOctokit } from "./octokit.js";
 import type {
+  ClosedIssue,
   CommitSummary,
   CreatedCommit,
   CreatedIssue,
+  IssueComment,
   IssueSummary,
   Repository,
   RepoSummary,
@@ -212,29 +214,78 @@ export class GitHubClient {
   }
 
   async listCommits(
+    owner: string,
+    repo: string,
+    branch = "main",
+    per_page = 10,
+  ): Promise<CommitSummary[]> {
+    const data = await githubRequest(() =>
+      this.octokit.rest.repos.listCommits({
+        owner,
+        repo,
+        sha: branch,
+        per_page,
+      }),
+    );
+
+    return data.map((commit) => ({
+      sha: commit.sha,
+      message: commit.commit.message,
+      author:
+        commit.commit.author?.name ??
+        commit.author?.login ??
+        "Autor desconocido",
+      date: commit.commit.author?.date ?? null,
+      url: commit.html_url,
+    }));
+  }
+
+  async addCommentToIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    body: string,
+  ): Promise<IssueComment> {
+    const data = await githubRequest(() =>
+      this.octokit.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        body,
+      }),
+    );
+
+    return {
+      id: data.id,
+      issueNumber,
+      body: data.body ?? "",
+      author:
+        data.user?.login ?? "Autor desconocido",
+      url: data.html_url,
+      createdAt: data.created_at,
+    };
+  }
+
+  async closeIssue(
   owner: string,
   repo: string,
-  branch = "main",
-  per_page = 10,
-): Promise<CommitSummary[]> {
+  issueNumber: number,
+): Promise<ClosedIssue> {
   const data = await githubRequest(() =>
-    this.octokit.rest.repos.listCommits({
+    this.octokit.rest.issues.update({
       owner,
       repo,
-      sha: branch,
-      per_page,
+      issue_number: issueNumber,
+      state: "closed",
     }),
   );
 
-  return data.map((commit) => ({
-    sha: commit.sha,
-    message: commit.commit.message,
-    author:
-      commit.commit.author?.name ??
-      commit.author?.login ??
-      "Autor desconocido",
-    date: commit.commit.author?.date ?? null,
-    url: commit.html_url,
-  }));
+  return {
+    number: data.number,
+    title: data.title,
+    state: "closed",
+    url: data.html_url,
+    closedAt: data.closed_at,
+  };
 }
 }
