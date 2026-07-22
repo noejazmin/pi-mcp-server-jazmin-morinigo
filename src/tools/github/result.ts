@@ -32,17 +32,22 @@ export function toToolError(error: unknown): ToolResult<never> {
   }
 
   if (error instanceof GitHubRateLimitError) {
-    return {
-      ok: false,
-      error: {
-        type: error.name,
-        message: error.message,
-        details: {
-          resetEpochSeconds: error.resetEpochSeconds,
-        },
+  return {
+    ok: false,
+    error: {
+      type: error.name,
+      message: error.message,
+      details: {
+        resetEpochSeconds:
+          error.resetEpochSeconds,
+        ...(error.retryAfterSeconds !== undefined && {
+          retryAfterSeconds:
+            error.retryAfterSeconds,
+        }),
       },
-    };
-  }
+    },
+  };
+}
 
   if (error instanceof GitHubValidationError) {
     return {
