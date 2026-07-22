@@ -31,7 +31,10 @@ export class GitHubForbiddenError extends GitHubError {
 }
 
 export class GitHubRateLimitError extends GitHubError {
-  constructor(public readonly resetEpochSeconds: number) {
+  constructor(
+    public readonly resetEpochSeconds: number,
+    public readonly retryAfterSeconds?: number,
+  ) {
     super(
       "Se alcanzó el límite de solicitudes permitido por GitHub.",
       429,
@@ -73,10 +76,22 @@ export class GitHubServerError extends GitHubError {
 export function readRateLimit(
   headers: Record<string, unknown>,
 ): RateLimitInfo {
+  const retryAfterHeader = headers["retry-after"];
+
   return {
-    limit: Number(headers["x-ratelimit-limit"] ?? 0),
-    remaining: Number(headers["x-ratelimit-remaining"] ?? -1),
-    resetEpochSeconds: Number(headers["x-ratelimit-reset"] ?? 0),
+    limit: Number(
+      headers["x-ratelimit-limit"] ?? 0,
+    ),
+    remaining: Number(
+      headers["x-ratelimit-remaining"] ?? -1,
+    ),
+    resetEpochSeconds: Number(
+      headers["x-ratelimit-reset"] ?? 0,
+    ),
+    retryAfterSeconds:
+      retryAfterHeader === undefined
+        ? undefined
+        : Number(retryAfterHeader),
   };
 }
 
@@ -106,6 +121,7 @@ export function mapGitHubError(error: unknown): GitHubError {
     if (rateLimit.remaining === 0 || status === 429) {
       return new GitHubRateLimitError(
         rateLimit.resetEpochSeconds,
+        rateLimit.retryAfterSeconds,
       );
     }
 
