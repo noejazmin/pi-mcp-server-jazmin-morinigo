@@ -266,10 +266,110 @@ export const createCommitOutputSchema = z.object({
   data: createdCommitSchema,
 });
 
+export const addCommentToIssueSchema = z.object({
+  owner: z
+    .string()
+    .min(1, {
+      message: "El propietario es obligatorio.",
+    })
+    .describe(
+      "Usuario u organización propietaria del repositorio.",
+    ),
+
+  repo: z
+    .string()
+    .min(1, {
+      message: "El repositorio es obligatorio.",
+    })
+    .describe("Nombre del repositorio."),
+
+  issue_number: z
+    .number()
+    .int()
+    .positive({
+      message:
+        "El número del issue debe ser un entero positivo.",
+    })
+    .describe(
+      "Número del issue donde se agregará el comentario.",
+    ),
+
+  body: z
+    .string()
+    .min(1, {
+      message: "El comentario no puede estar vacío.",
+    })
+    .max(65536, {
+      message:
+        "El comentario no puede superar los 65536 caracteres.",
+    })
+    .describe(
+      "Contenido en Markdown del comentario que se agregará al issue.",
+    ),
+});
+
+export const issueCommentSchema = z.object({
+  id: z.number().int().positive(),
+  issueNumber: z.number().int().positive(),
+  body: z.string(),
+  author: z.string(),
+  url: z.string().url(),
+  createdAt: z.string().datetime(),
+});
+
+export const addCommentToIssueOutputSchema = z.object({
+  ok: z.literal(true),
+  data: issueCommentSchema,
+});
+
+export const closeIssueSchema = z.object({
+  owner: z
+    .string()
+    .min(1, {
+      message: "El propietario es obligatorio.",
+    })
+    .describe(
+      "Usuario u organización propietaria del repositorio.",
+    ),
+
+  repo: z
+    .string()
+    .min(1, {
+      message: "El repositorio es obligatorio.",
+    })
+    .describe("Nombre del repositorio."),
+
+  issue_number: z
+    .number()
+    .int()
+    .positive({
+      message:
+        "El número del issue debe ser un entero positivo.",
+    })
+    .describe(
+      "Número del issue que se desea cerrar.",
+    ),
+});
+
+export const closedIssueSchema = z.object({
+  number: z.number().int().positive(),
+  title: z.string(),
+  state: z.literal("closed"),
+  url: z.string().url(),
+  closedAt: z.string().datetime().nullable(),
+});
+
+export const closeIssueOutputSchema = z.object({
+  ok: z.literal(true),
+  data: closedIssueSchema,
+});
+
 export type Repository = z.infer<typeof repositorySchema>;
 export type CreatedIssue = z.infer<typeof createdIssueSchema>;
 export type RepoSummary = z.infer<typeof repoSummarySchema>;
 export type IssueSummary = z.infer<typeof issueSummarySchema>;
 export type CreatedCommit = z.infer<typeof createdCommitSchema>;
 export type CommitSummary = z.infer<typeof commitSummarySchema>;
+export type IssueComment = z.infer<typeof issueCommentSchema>;
+export type ClosedIssue = z.infer<typeof closedIssueSchema>;
 
